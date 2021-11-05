@@ -31,14 +31,6 @@ class AWSProvider(CloudProvider):
 			#aws_session_token
 		)
 
-		self.ssm_client = boto3.client(
-			"ssm",
-			aws_access_key_id=self.access_key,
-			aws_secret_access_key=self.secret_key,
-			region_name=self.aws_region
-			#aws_session_token
-		)
-
 	def create_new_deployment(self):
 		logging.info("Creating new deployment")
 		#create security group
@@ -73,22 +65,6 @@ class AWSProvider(CloudProvider):
 
 	def delete_deployment(self, deployment):
 		deployment.ec2_instance.terminate()
-
-	def deploy_wetladder_server(self, deployment):
-		instance_id = deployment.ec2_instance.id
-		# can not build until deployment complete
-		logging.info("Waiting for deployment to start...")
-		deployment.ec2_instance.wait_until_running()
-
-		resp = self.ssm_client.send_command(
-			DocumentName="AWS-RunShellScript",
-			Parameters={
-				"commands": self.commands
-			},
-			InstanceIds=[instance_id]
-		)
-		logging.info("Successfully deployed WetLadder Instance!")
-		print(resp)
 
 	def open_deployment_port(self, deployment, port_num, port_proto):
 		self.ec2_client.authorize_security_group_ingress(
