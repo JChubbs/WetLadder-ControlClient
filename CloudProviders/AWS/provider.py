@@ -34,7 +34,7 @@ class AWSProvider(CloudProvider):
 	def create_new_deployment(self):
 		logging.info("Creating new deployment")
 		#create security group
-		security_group_id = self._create_security_group()
+		security_group = self._create_security_group()
 
 		#user_data is pretty much just commands run on start?
 		with open("./CloudProviders/AWS/user-data.sh", "r") as user_data_file:
@@ -47,18 +47,18 @@ class AWSProvider(CloudProvider):
 			MinCount=1,
 			MaxCount=1,
 			SecurityGroupIds=[
-				security_group_id
+				security_group.id
 			],
 			UserData=user_data,
 		)
 
 		deployment = AWSDeployment(
-			security_group_id = security_group_id,
+			security_group = security_group,
 			ec2_instance = instance[0]
 		)
 
 		#open port needed for rest api
-		self.open_deployment_port(deployment, 5000, "tcp")
+		deployment.open_port(5000, "tcp")
 
 		logging.info(f"New deployment created - deployment_id = {deployment.ec2_instance.id}")
 		return deployment
@@ -66,29 +66,12 @@ class AWSProvider(CloudProvider):
 	def delete_deployment(self, deployment):
 		deployment.ec2_instance.terminate()
 
-	def open_deployment_port(self, deployment, port_num, port_proto):
-		self.ec2_client.authorize_security_group_ingress(
-			GroupId=deployment.security_group_id,
-			IpProtocol=port_proto,
-			CidrIp="0.0.0.0/0", #allow connection from anywhere
-			FromPort=port_num,
-			ToPort=port_num
-		)
-
-	def close_deployment_port(self, deployment, port_num, port_proto):
-		self.ec2_client.revoke_security_group_ingress(
-			GroupId=deployment.security_group_id,
-			IpProtocol=port_proto,
-			CidrIp="0.0.0.0/0", #allow connection from anywhere
-			FromPort=port_num,
-			ToPort=port_num
-		)
-
 	def _create_security_group(self):
 		resp = self.ec2_client.create_security_group(
 			Description="WetLadded deployment security group",
 			GroupName=f"Wetladder - {str(uuid.uuid1())}"
 		)
+		security_group = self.ec2_resource.SecurityGroup(resp["GroupId"])
 
-		logging.info(f"Security Group created - GroupId = {resp['GroupId']}")
-		return resp["GroupId"]
+		logging.info(f"Security Group created - GroupId = {security_group.id}")
+		return security_group
