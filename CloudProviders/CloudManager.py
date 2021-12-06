@@ -8,16 +8,12 @@ class CloudManager():
 		"AWS": AWSProvider
 	}
 
-	def get_config_files(self):
-		config_files = os.listdir("./config")
-		return config_files
-		#print("\n".join(config_files))
-
 	def check_valid_config(self, config):
-		return config in self.get_config_files()
+		print(config)
+		return os.path.exists(config)
 
 	def load_config(self, config):
-		with open(f"./config/{config}", "r") as conf_file:
+		with open(config, "r") as conf_file:
 			contents = conf_file.readlines()
 
 		values = {i.split("=")[0].strip("\n"): i.split("=")[1].strip("\n") for i in contents if "=" in i}
