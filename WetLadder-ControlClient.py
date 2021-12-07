@@ -16,7 +16,7 @@ def main():
 	parser.add_argument("--target", nargs="?", default="WIN_64", help="Target OS/Architecture for client download")
 	parser.add_argument("--client_path", nargs="?", default="./tmp", help="Target dir to output client folder")
 	parser.add_argument("--obfs", nargs="?", default=None, help="Obfuscation method to be utilized")
-	parser.add_argument("--obfs-port", nargs="?", default=1443, help="Port to have obfuscator listening on")
+	parser.add_argument("--obfs-port", nargs="?", type=int, default=1443, help="Port to have obfuscator listening on")
 
 	args = parser.parse_args()
 	
